@@ -9,3 +9,11 @@ type Hashquine struct {
     Chars_img_data       map[uint64]([]byte)
     Char_dimension       int
 }
+
+type Alternatives struct {
+    Char_pos             int
+    Char                 int
+    Coll_pos             int
+    Coll                 []byte
+}
+    
