@@ -10,5 +10,6 @@ func Generate(hashquine Hashquine) ([]byte, error) {
 
     generated_gif := hashquine.Background_blocks["header"]
     generated_gif = append(generated_gif, hashquine.Background_blocks["lcd"]...)
+    generated_gif = append(generated_gif, hashquine.Background_blocks["gct"]...)
     
 }
