@@ -1,9 +1,9 @@
 package lib
 
 import (
-
 )
 
-func Generate() {
-    
+func Generate(hashquine Hashquine) []byte {
+    empty := make([]byte, 0)
+    return empty 
 }

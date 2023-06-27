@@ -8,21 +8,11 @@ import (
     "strconv"
 )
     
-type Hashquine struct {
-    template_dir         string
-    output               string
-    hash_img_coordinates [2]int
-    mask                 string
-    background_blocks    map[string]([]byte)
-    chars_img_data       map[uint64]([]byte)
-    char_dimension       int
-}
-
 func main() {
     var template_dir string
     var output string
 
-    flag.StringVar(&template_dir, "t", "building_blocks", "Specify the location of the directory containing the templates to be used. By default, this will be the building_blocks dir in the root of the repo.")
+    flag.StringVar(&template_dir, "t", "./building_blocks", "Specify the location of the directory containing the templates to be used. By default, this will be the building_blocks dir in the root of the repo.")
     flag.StringVar(&output, "o", "hashquine.gif", "Specify the name of the output gif, by default this will be 'hashquine.gif'.")
     flag.Parse()
 
@@ -45,14 +35,14 @@ func main() {
         }
         chars_img_data[index] = char_block["img_data"]
     }
-    hashquine := Hashquine{
-        template_dir,
-        output,
-        [2]int{0, -40},
-        "1337    deadbeef                                                ",
-        background_blocks,
-        chars_img_data,
-        40,
+    hashquine := lib.Hashquine{
+        Template_dir: template_dir,
+        Output: output,
+        Hash_img_coordinates: [2]int{0, -40},
+        Mask: "1337    deadbeef                                                ",
+        Background_blocks: background_blocks,
+        Chars_img_data: chars_img_data,
+        Char_dimension: 40,
     }
     fmt.Printf("%v", hashquine)
 }
