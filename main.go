@@ -35,14 +35,14 @@ func main() {
         }
         chars_img_data[index] = char_block["img_data"]
     }
-    hashquine := lib.Hashquine{
+    hashquine_params := lib.Hashquine_params{
         Template_dir: template_dir,
         Output: output,
-        Hash_img_coordinates: [2]int{0, -40},
+        Hash_img_coordinates: [2]int{0, 0},
         Mask: "1337    deadbeef                                                ",
         Background_blocks: background_blocks,
         Chars_img_data: chars_img_data,
         Char_dimension: 40,
     }
-    fmt.Printf("%v", hashquine)
+    fmt.Printf("%v", hashquine_params)
 }

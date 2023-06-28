@@ -1,6 +1,6 @@
 package lib
 
-type Hashquine struct {
+type Hashquine_params struct {
     Template_dir         string
     Output               string
     Hash_img_coordinates [2]int
