@@ -11,9 +11,9 @@ type Hashquine struct {
 }
 
 type Alternatives struct {
-    Char_pos             int
+    Char_pos             [2]int
     Char                 int
-    Coll_pos             int
+    Coll_pos             [2]int
     Coll                 []byte
 }
     
