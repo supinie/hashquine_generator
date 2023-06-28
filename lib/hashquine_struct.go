@@ -16,4 +16,3 @@ type Alternatives struct {
     Coll_pos             [2]int
     Coll                 []byte
 }
-    
