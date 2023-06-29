@@ -6,14 +6,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
-	"sync"
+	"os/exec"
+	"strings"
 )
 
 const COLLISION_DIFF = 123
 const COLLISION_LEN = 128
 
-func gen_collisions(prefix []byte, tmp_dir string) ([]byte, []byte, error) {
+func gen_collision(prefix []byte, tmp_dir string) ([]byte, []byte, error) {
     empty := make([]byte, 0)
     if len(prefix)%64 != 0 {
         err := errors.New("Misaligned prefix length")
@@ -27,7 +29,7 @@ func gen_collisions(prefix []byte, tmp_dir string) ([]byte, []byte, error) {
     if err != nil {
         return empty, empty, err
     }
-    coll_b_file, err := os.CreateTemp(temp_dir, "coll_b")
+    coll_b_file, err := os.CreateTemp(tmp_dir, "coll_b")
     if err != nil {
         return empty, empty, err
     }
@@ -57,31 +59,41 @@ REGEN:
     if !equality {
         goto REGEN
     }
+    if len(coll_a) != len(coll_b) && len(coll_a) != COLLISION_LEN {
+        goto REGEN
+    }
+    if coll_a[COLLISION_DIFF] == coll_b[COLLISION_DIFF] {
+        goto REGEN
+    }
+    if coll_a[COLLISION_DIFF] < coll_b[COLLISION_DIFF] {
+        return coll_a, coll_b, err
+    }
+    return coll_b, coll_a, err
 }
 
 
-func test_file_hashes(filename1, filename2 string) (bool, err) {
+func test_file_hashes(filename1, filename2 string) (bool, error) {
     file1, err := os.Open(filename1)
     if err != nil {
-        return md5.New(), err
+        return false, err
     }
     defer file1.Close()
     
     file2, err := os.Open(filename2)
     if err != nil {
-        return md5.New(), err
+        return false, err
     }
     defer file2.Close()
 
 
     h1 := md5.New()
     if _, err := io.Copy(h1, file1); err != nil {
-        return md5.New(), err
+        return false, err
     }
 
     h2 := md5.New()
     if _, err := io.Copy(h2, file2); err != nil {
-        return md5.New(), err
+        return false, err
     }
 
     return bytes.Equal(h1.Sum(nil), h2.Sum(nil)), err 
@@ -94,7 +106,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     if err != nil {
         return empty, err
     }
-    alternatives := make([]Alternatives, 0)     // char_pos, char: coll_pos, coll
+    alternatives := make(map[Alterative_key]Alternative_Value)     // char_pos, char: coll_pos, coll
 
     generated_gif := hashquine_params.Background_blocks["header"]
     generated_gif = append(generated_gif, hashquine_params.Background_blocks["lcd"]...)
@@ -133,32 +145,100 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
 
     for char_y := 0; char_y < 4; char_y++ {
         for char_x := 0; char_x < 8; char_x++ {
-            if hashquine_params.Mask[char_index] != " " {
+            if string([]rune(hashquine_params.Mask)[char_x + (8 * char_y)]) != " " {
                 continue
             }
             for char := 0; char < 16; char++ {
                 char_img := make([]byte, 0)
                 char_img = append(char_img, graphic_control_extension...)
                 char_img = append(char_img, descriptor_prefix...)
-                char_img = append(char_img, byte[char_x * 40])
-                char_img = append(char_img, byte[char_y * 40])
-                char_img = append(char_img, byte[hashquine_params.Char_dimension])
-                char_img = append(char_img, byte[hashquine_params.Char_dimension])
-                char_img = append(char_img, descriptor_prefix...)
+                char_img = append(char_img, byte(char_x * 40))
+                char_img = append(char_img, byte(char_y * 40))
+                char_img = append(char_img, byte(hashquine_params.Char_dimension))
+                char_img = append(char_img, byte(hashquine_params.Char_dimension))
+                char_img = append(char_img, descriptor_suffix...)
 
-                char_img = append(char_img, hashquine_params.Chars_img_data[char]...)
+                char_img = append(char_img, hashquine_params.Chars_img_data[uint64(char)]...)
 
                 // align with md5 block
                 align := 64 - (len(generated_gif) % 64)
-                generated_gif = append(generated_gif, byte[align - 1 + COLLISION_DIFF])
-                padding, err := hex.DecodeString("00" * (align - 1))
+                generated_gif = append(generated_gif, byte(align - 1 + COLLISION_DIFF))
+                padding, err := hex.DecodeString(strings.Repeat("00", (align - 1)))
                 if err != nil {
                     return empty, err
                 }
                 generated_gif = append(generated_gif, padding...)
-                coll_img, coll_nop, err := gen_collision(generated_gif, tmp_dir)
+                var coll_img, coll_nop []byte
+                var coll_p_img, coll_p_nop int
+                for {
+                    coll_img, coll_nop, err = gen_collision(generated_gif, tmp_dir)
+                    if err != nil {
+                        return empty, err
+                    }
+                    offset := COLLISION_LEN - COLLISION_DIFF - 1
+                    coll_p_img = int(coll_img[COLLISION_DIFF]) - offset
+                    coll_p_nop = int(coll_nop[COLLISION_DIFF]) - offset
+                    pad_len := int(coll_p_nop) - int(coll_p_img) - len(char_img) - 4
+                    if coll_p_img >= 0 && pad_len >= 0 {
+                        break
+                    }
+                }
+                char_pos := [2]int{char_x, char_y}
+                alternatives[Alternative_key{char_pos, char}] =  Alternative_Value{(generated_gif), coll_img}}
+                generated_gif = append(generated_gif, coll_nop...)
+
+                padding, err = hex.DecodeString(strings.Repeat("00", (coll_p_img + 1)))
                 if err != nil {
                     return empty, err
                 }
+                generated_gif = append(generated_gif, padding...)
+                generated_gif = append(generated_gif, char_img...)
 
+                generated_gif = append(generated_gif, comment_prefix...)
+                generated_gif = append(generated_gif, byte(pad_len))
+                generated_gif = append(generated_gif, comment_suffix...)
+
+                padding, err = hex.DecodeString(strings.Repeat("00", pad_len))
+                if err != nil {
+                    return empty, err
+                }
+                generated_gif = append(generated_gif, padding...)
+            }
+        }
+    }
+    fmt.Println("bruteforcing hash for fixed digits...")
+    current_md5 := md5.Sum(generated_gif)
+
+    for garbage := 0; garbage < (1 << 32); garbage++ {
+        comment_sub_block := []byte{4, byte(garbage), 0}
+        end_comment := []byte{0}
+        trailer := []byte{0x3b}
+
+        end := append(append(comment_sub_block, end_comment...), trailer...)
+
+
+        new_md5 := md5.Sum(append(current_md5[:], end...))
+
+        match := true
+        for i, mask_char := range hashquine_params.Mask {
+            md5_char := fmt.Sprintf("%02x", new_md5[i])
+            if string(mask_char) != " " && string(mask_char) != md5_char {
+                match = false
+                break
+            }
+        }
+
+        if match {
+            generated_gif = append(generated_gif, end...)
+            break
+        }
+    }
+    fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
+
+    for i, char := range hex.EncodeToString(md5.Sum(generated_gif[:])) {
+        if hashquine_params.Mask[i] != " " {
+            continue
+        }
+        coll_pos, coll = alternatives[i, char]
+    return empty, err
 }

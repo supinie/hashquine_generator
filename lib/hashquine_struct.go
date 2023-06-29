@@ -10,9 +10,12 @@ type Hashquine_params struct {
     Char_dimension       int
 }
 
-type Alternatives struct {
+type Alternative_Key struct {
     Char_pos             [2]int
     Char                 int
-    Coll_pos             [2]int
+}
+
+type Alternative_Value struct {
+    Coll_pos             int
     Coll                 []byte
 }
