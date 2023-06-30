@@ -25,11 +25,11 @@ func gen_collision(prefix []byte, tmp_dir string) ([]byte, []byte, error) {
     if err != nil {
         return empty, empty, err
     }
-    coll_a_file, err := os.CreateTemp(tmp_dir, "coll_a")
+    coll_a_file, err := os.CreateTemp(tmp_dir, "coll_a*.bit")
     if err != nil {
         return empty, empty, err
     }
-    coll_b_file, err := os.CreateTemp(tmp_dir, "coll_b")
+    coll_b_file, err := os.CreateTemp(tmp_dir, "coll_b*.bit")
     if err != nil {
         return empty, empty, err
     }
@@ -48,7 +48,15 @@ REGEN:
         return empty, empty, err
     }
     coll_a, err := os.ReadFile(coll_a_file.Name())
+    if err != nil {
+        return empty, empty, err
+    }
     coll_b, err := os.ReadFile(coll_b_file.Name())
+    if err != nil {
+        return empty, empty, err
+    }
+    coll_a = coll_a[len(prefix):]
+    coll_b = coll_b[len(prefix):]
     if bytes.Equal(coll_a, coll_b) {
         goto REGEN
     }
@@ -60,9 +68,6 @@ REGEN:
         goto REGEN
     }
     if len(coll_a) != len(coll_b) && len(coll_a) != COLLISION_LEN {
-        goto REGEN
-    }
-    if coll_a[COLLISION_DIFF] == coll_b[COLLISION_DIFF] {
         goto REGEN
     }
     if coll_a[COLLISION_DIFF] < coll_b[COLLISION_DIFF] {
@@ -106,7 +111,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     if err != nil {
         return empty, err
     }
-    alternatives := make(map[Alterative_key]Alternative_Value)     // char_pos, char: coll_pos, coll
+    alternatives := make(map[Alternative_Key]Alternative_Value)     // char_pos, char: coll_pos, coll
 
     generated_gif := hashquine_params.Background_blocks["header"]
     generated_gif = append(generated_gif, hashquine_params.Background_blocks["lcd"]...)
@@ -169,8 +174,9 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                 }
                 generated_gif = append(generated_gif, padding...)
                 var coll_img, coll_nop []byte
-                var coll_p_img, coll_p_nop int
+                var coll_p_img, coll_p_nop, pad_len int
                 for {
+                    fmt.Printf("Generating collision %d\n", char_y + char_x + char)
                     coll_img, coll_nop, err = gen_collision(generated_gif, tmp_dir)
                     if err != nil {
                         return empty, err
@@ -178,13 +184,14 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                     offset := COLLISION_LEN - COLLISION_DIFF - 1
                     coll_p_img = int(coll_img[COLLISION_DIFF]) - offset
                     coll_p_nop = int(coll_nop[COLLISION_DIFF]) - offset
-                    pad_len := int(coll_p_nop) - int(coll_p_img) - len(char_img) - 4
+                    pad_len = int(coll_p_nop) - int(coll_p_img) - len(char_img) - 4
                     if coll_p_img >= 0 && pad_len >= 0 {
                         break
                     }
+                    fmt.Println("Bad collision, retrying")
                 }
                 char_pos := [2]int{char_x, char_y}
-                alternatives[Alternative_key{char_pos, char}] =  Alternative_Value{(generated_gif), coll_img}}
+                alternatives[Alternative_Key{char_pos, char}] =  Alternative_Value{len(generated_gif), coll_img}
                 generated_gif = append(generated_gif, coll_nop...)
 
                 padding, err = hex.DecodeString(strings.Repeat("00", (coll_p_img + 1)))
@@ -210,6 +217,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     current_md5 := md5.Sum(generated_gif)
 
     for garbage := 0; garbage < (1 << 32); garbage++ {
+        fmt.Println("Brute forcing...")
         comment_sub_block := []byte{4, byte(garbage), 0}
         end_comment := []byte{0}
         trailer := []byte{0x3b}
@@ -234,11 +242,16 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         }
     }
     fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
-
-    for i, char := range hex.EncodeToString(md5.Sum(generated_gif[:])) {
-        if hashquine_params.Mask[i] != " " {
+    hash_slice := md5.Sum(generated_gif)
+    for i, char := range hex.EncodeToString(hash_slice[:]) {
+        if string(hashquine_params.Mask[i]) != " " {
             continue
         }
-        coll_pos, coll = alternatives[i, char]
-    return empty, err
+        x := i % 4
+        y := (i - x)/8
+        coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
+        generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
+        generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
+    }
+    return generated_gif, err
 }

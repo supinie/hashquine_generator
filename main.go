@@ -6,6 +6,7 @@ import (
     "flag"
     "fmt"
     "strconv"
+    "os"
 )
     
 func main() {
@@ -44,5 +45,20 @@ func main() {
         Chars_img_data: chars_img_data,
         Char_dimension: 40,
     }
-    fmt.Printf("%v", hashquine_params)
+    generated_gif, err := lib.Generate(hashquine_params)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    gif_file, err := os.Create(output)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    _, err = gif_file.Write(generated_gif)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    return
 }
