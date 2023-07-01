@@ -58,6 +58,7 @@ REGEN:
     coll_a = coll_a[len(prefix):]
     coll_b = coll_b[len(prefix):]
     if bytes.Equal(coll_a, coll_b) {
+        fmt.Println("goto")
         goto REGEN
     }
     equality, err := test_file_hashes(coll_a_file.Name(), coll_b_file.Name())
@@ -65,9 +66,11 @@ REGEN:
         return empty, empty, err
     }
     if !equality {
+        fmt.Println("goto")
         goto REGEN
     }
     if len(coll_a) != len(coll_b) && len(coll_a) != COLLISION_LEN {
+        fmt.Println("goto")
         goto REGEN
     }
     if coll_a[COLLISION_DIFF] < coll_b[COLLISION_DIFF] {
@@ -217,7 +220,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     current_md5 := md5.Sum(generated_gif)
 
     for garbage := 0; garbage < (1 << 32); garbage++ {
-        fmt.Println("Brute forcing...")
+        // fmt.Println("Brute forcing...")
         comment_sub_block := []byte{4, byte(garbage), 0}
         end_comment := []byte{0}
         trailer := []byte{0x3b}
@@ -237,6 +240,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         }
 
         if match {
+            fmt.Println("Found bruteforce")
             generated_gif = append(generated_gif, end...)
             break
         }
@@ -253,5 +257,6 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
         generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
     }
+    fmt.Printf("%v", generated_gif)
     return generated_gif, err
 }

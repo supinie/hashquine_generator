@@ -50,12 +50,7 @@ func main() {
         fmt.Println(err)
         return
     }
-    gif_file, err := os.Create(output)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    _, err = gif_file.Write(generated_gif)
+    err = os.WriteFile(output, generated_gif, 0666)
     if err != nil {
         fmt.Println(err)
         return
