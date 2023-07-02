@@ -234,6 +234,8 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         new_md5 := md5.Sum(append(current_md5[:], end...))
 
         match := true
+        fmt.Printf("%x\n", new_md5)
+        fmt.Printf("%x\n", hashquine_params.Mask)
         for i, mask_char := range hashquine_params.Mask {
             md5_char := fmt.Sprintf("%02x", new_md5[i])
             if string(mask_char) != " " && string(mask_char) != md5_char {

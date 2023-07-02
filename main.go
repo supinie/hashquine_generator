@@ -17,7 +17,7 @@ func main() {
     flag.StringVar(&output, "o", "hashquine.gif", "Specify the name of the output gif, by default this will be 'hashquine.gif'.")
     flag.Parse()
 
-    background_blocks, err := lib.Read_gif("./building_blocks/background.gif")
+    background_blocks, err := lib.Read_gif("./building_blocks/background_blank.gif")
     if err != nil {
         fmt.Println(err)
         return
@@ -40,7 +40,8 @@ func main() {
         Template_dir: template_dir,
         Output: output,
         Hash_img_coordinates: [2]int{0, 0},
-        Mask: "1337    deadbeef                                                ",
+        Mask: "                                                                ",
+        // Mask: "1337    deadbeef                                                ",
         Background_blocks: background_blocks,
         Chars_img_data: chars_img_data,
         Char_dimension: 40,
