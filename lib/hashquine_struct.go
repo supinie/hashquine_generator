@@ -1,6 +1,6 @@
 package lib
 
-type Hashquine struct {
+type Hashquine_params struct {
     Template_dir         string
     Output               string
     Hash_img_coordinates [2]int
@@ -10,10 +10,12 @@ type Hashquine struct {
     Char_dimension       int
 }
 
-type Alternatives struct {
+type Alternative_Key struct {
     Char_pos             [2]int
     Char                 int
-    Coll_pos             [2]int
+}
+
+type Alternative_Value struct {
+    Coll_pos             int
     Coll                 []byte
 }
-    
