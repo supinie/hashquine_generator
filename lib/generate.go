@@ -1,5 +1,6 @@
 package lib
 
+
 import (
 	"bytes"
 	"crypto/md5"
@@ -179,7 +180,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                 var coll_img, coll_nop []byte
                 var coll_p_img, coll_p_nop, pad_len int
                 for {
-                    fmt.Printf("Generating collision %d\n", char_y + char_x + char)
+                    fmt.Printf("Generating collision for position %d, %d, character %d\n", char_x,  char_y, char)
                     coll_img, coll_nop, err = gen_collision(generated_gif, tmp_dir)
                     if err != nil {
                         return empty, err
@@ -216,8 +217,10 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
             }
         }
     }
+    fmt.Printf("%v\n", alternatives)
     fmt.Println("bruteforcing hash for fixed digits...")
     current_md5 := md5.Sum(generated_gif)
+    fmt.Printf("%x\n", current_md5)
 
     for garbage := 0; garbage < (1 << 32); garbage++ {
         // fmt.Println("Brute forcing...")
@@ -254,6 +257,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         x := i % 4
         y := (i - x)/8
         coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
+        fmt.Printf("%v\n", coll_alternative)
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
         generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
     }
