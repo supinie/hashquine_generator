@@ -21,7 +21,7 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		return nil, err
 	}
 	if string(header) != "GIF87a" && string(header) != "GIF89a" {
-		return nil, fmt.Errorf("Invalid GIF file format")
+		return nil, fmt.Errorf("Invalid GIF file format for %s", filename)
 	}
 	blocks["header"] = header
 
@@ -36,7 +36,7 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	}
 	blocks["lcd"] = lcd
 
-	gct := make([]byte, 16*3)
+	gct := make([]byte, 6)
 	_, err = file.Read(gct)
 	if err != nil {
 		return nil, err
@@ -48,9 +48,9 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if imgDescriptor[0] != 0x2c || imgDescriptor[9] != 0 {
-	// 	return nil, fmt.Errorf("Invalid image descriptor")
-	// }
+	if imgDescriptor[0] != 0x2c || imgDescriptor[9] != 0 {
+		return nil, fmt.Errorf("Invalid image descriptor for %s", filename)
+	}
 	blocks["img_descriptor"] = imgDescriptor
 
 	imgData := make([]byte, 1)
@@ -64,7 +64,6 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-        fmt.Printf("%x\n", subBlockSize)
 		imgData = append(imgData, subBlockSize[0])
 		if subBlockSize[0] == 0 {
 			break
@@ -74,7 +73,6 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-        fmt.Printf("%x\n", subBlockData)
 		imgData = append(imgData, subBlockData...)
 	}
 	blocks["img_data"] = imgData
@@ -84,9 +82,8 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-    fmt.Printf("%x\n", trailer)
 	if trailer[0] != 0x3b {
-		return nil, fmt.Errorf("Invalid GIF trailer")
+		return nil, fmt.Errorf("Invalid GIF trailer for %s", filename)
 	}
 
 	return blocks, nil

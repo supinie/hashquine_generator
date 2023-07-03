@@ -189,9 +189,11 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                     coll_p_img = int(coll_img[COLLISION_DIFF]) - offset
                     coll_p_nop = int(coll_nop[COLLISION_DIFF]) - offset
                     pad_len = int(coll_p_nop) - int(coll_p_img) - len(char_img) - 4
+                    fmt.Println(len(char_img))
                     if coll_p_img >= 0 && pad_len >= 0 {
                         break
                     }
+                    fmt.Printf("%v %v %v\n", coll_p_img, coll_p_nop, pad_len)
                     fmt.Println("Bad collision, retrying")
                 }
                 char_pos := [2]int{char_x, char_y}
