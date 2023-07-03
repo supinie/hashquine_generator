@@ -57,7 +57,7 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		return nil, err
 	}
     fmt.Printf("%x\n", lcd)
-	if !bytes.HasSuffix(lcd, []byte{0xe3, 0x10, 0x00}) {
+	if !bytes.HasSuffix(lcd, []byte{0x80, 0x02, 0x00}) {
 		return nil, fmt.Errorf("Invalid logical screen descriptor")
 	}
 	blocks["lcd"] = lcd
