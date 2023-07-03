@@ -79,13 +79,13 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	}
 	blocks["img_data"] = imgData
 
-	trailer := make([]byte, 2)
+	trailer := make([]byte, 1)
 	_, err = file.Read(trailer)
 	if err != nil {
 		return nil, err
 	}
     fmt.Printf("%x\n", trailer)
-	if trailer[1] != 0x3b {
+	if trailer[0] != 0x3b {
 		return nil, fmt.Errorf("Invalid GIF trailer")
 	}
 
