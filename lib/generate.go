@@ -1,6 +1,5 @@
 package lib
 
-
 import (
 	"bytes"
 	"crypto/md5"
@@ -10,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -217,45 +217,50 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
             }
         }
     }
-    fmt.Printf("%v\n", alternatives)
-    fmt.Println("bruteforcing hash for fixed digits...")
-    current_md5 := md5.Sum(generated_gif)
-    fmt.Printf("%x\n", current_md5)
+    // current_md5 := md5.Sum(generated_gif)
 
-    for garbage := 0; garbage < (1 << 32); garbage++ {
-        // fmt.Println("Brute forcing...")
-        comment_sub_block := []byte{4, byte(garbage), 0}
-        end_comment := []byte{0}
-        trailer := []byte{0x3b}
+    // for garbage := 0; garbage < (1 << 32); garbage++ {
+    //     // fmt.Println("Brute forcing...")
+    //     comment_sub_block := []byte{4, byte(garbage), 0}
+    //     end_comment := []byte{0}
+    //     trailer := []byte{0x3b}
 
-        end := append(append(comment_sub_block, end_comment...), trailer...)
+    //     end := append(append(comment_sub_block, end_comment...), trailer...)
 
 
-        new_md5 := md5.Sum(append(current_md5[:], end...))
+    //     new_md5 := md5.Sum(append(current_md5[:], end...))
 
-        match := true
-        for i, mask_char := range hashquine_params.Mask {
-            md5_char := fmt.Sprintf("%02x", new_md5[i])
-            if string(mask_char) != " " && string(mask_char) != md5_char {
-                match = false
-                break
-            }
-        }
+    //     match := true
+    //     fmt.Printf("%x\n", new_md5)
+    //     fmt.Printf("%x\n", hashquine_params.Mask)
+    //     for i, mask_char := range hashquine_params.Mask {
+    //         // md5_char := fmt.Sprintf("%02x", new_md5[i])
+    //         if string(mask_char) != " " && string(mask_char) != string(new_md5[i]) {
+    //             match = false
+    //             break
+    //         }
+    //     }
 
-        if match {
-            fmt.Println("Found bruteforce")
-            generated_gif = append(generated_gif, end...)
-            break
-        }
-    }
+    //     if match {
+    //         fmt.Println("Found bruteforce")
+    //         generated_gif = append(generated_gif, end...)
+    //         break
+    //     }
+    // }
     fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
     hash_slice := md5.Sum(generated_gif)
-    for i, char := range hex.EncodeToString(hash_slice[:]) {
+    rune_slice := []rune(fmt.Sprintf("%x", hash_slice))
+    for i := range hex.EncodeToString(hash_slice[:]) {
         if string(hashquine_params.Mask[i]) != " " {
             continue
         }
         x := i % 4
         y := (i - x)/8
+        char, err := strconv.ParseInt(string(rune_slice[i]), 16, 0)
+        if err != nil {
+            return empty, err
+        }
+        fmt.Printf("%v %v\n", [2]int{x, y}, char)
         coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
         fmt.Printf("%v\n", coll_alternative)
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
