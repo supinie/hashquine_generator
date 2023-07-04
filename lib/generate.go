@@ -266,7 +266,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         }
         fmt.Printf("%v %v\n", [2]int{x, y}, char)
         coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
-        fmt.Printf("%v\n", coll_alternative)
+        fmt.Printf("putting in char %v in position %v, %v\n", char, x, y)
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
         generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
     }
