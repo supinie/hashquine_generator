@@ -129,8 +129,10 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     if err != nil {
         return empty, err
     }
+    comment := "If you see this, please don't use md5"
     generated_gif = append(generated_gif, comment_prefix...)
-    generated_gif = append(generated_gif, "Why are you looking here?"...)
+    generated_gif = append(generated_gif, byte(len(comment)))
+    generated_gif = append(generated_gif, comment...)
     generated_gif = append(generated_gif, comment_suffix...)
 
     generated_gif = append(generated_gif, graphic_control_extension...)
@@ -193,7 +195,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                     if coll_p_img >= 0 && pad_len >= 0 {
                         break
                     }
-                    fmt.Printf("%v %v %v\n", coll_p_img, coll_p_nop, pad_len)
+                    // fmt.Printf("%v %v %v\n", coll_p_img, coll_p_nop, pad_len)
                     fmt.Println("Bad collision, retrying")
                 }
                 char_pos := [2]int{char_x, char_y}
