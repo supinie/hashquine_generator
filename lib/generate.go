@@ -268,6 +268,6 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
         generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
     }
-    fmt.Printf("%v", generated_gif)
+    fmt.Printf("%x", generated_gif)
     return generated_gif, err
 }
