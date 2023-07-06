@@ -59,7 +59,6 @@ REGEN:
     coll_a = coll_a[len(prefix):]
     coll_b = coll_b[len(prefix):]
     if bytes.Equal(coll_a, coll_b) {
-        fmt.Println("goto")
         goto REGEN
     }
     equality, err := test_file_hashes(coll_a_file.Name(), coll_b_file.Name())
@@ -67,11 +66,9 @@ REGEN:
         return empty, empty, err
     }
     if !equality {
-        fmt.Println("goto")
         goto REGEN
     }
     if len(coll_a) != len(coll_b) && len(coll_a) != COLLISION_LEN {
-        fmt.Println("goto")
         goto REGEN
     }
     if coll_a[COLLISION_DIFF] < coll_b[COLLISION_DIFF] {
@@ -182,7 +179,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                 var coll_img, coll_nop []byte
                 var coll_p_img, coll_p_nop, pad_len int
                 for {
-                    fmt.Printf("Generating collision for position %d, %d, character %d\n", char_x,  char_y, char)
+                    fmt.Printf("Generating collision for position (%d, %d), character %d\n", char_x,  char_y, char)
                     coll_img, coll_nop, err = gen_collision(generated_gif, tmp_dir)
                     if err != nil {
                         return empty, err
@@ -191,11 +188,9 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
                     coll_p_img = int(coll_img[COLLISION_DIFF]) - offset
                     coll_p_nop = int(coll_nop[COLLISION_DIFF]) - offset
                     pad_len = int(coll_p_nop) - int(coll_p_img) - len(char_img) - 4
-                    fmt.Println(len(char_img))
                     if coll_p_img >= 0 && pad_len >= 0 {
                         break
                     }
-                    // fmt.Printf("%v %v %v\n", coll_p_img, coll_p_nop, pad_len)
                     fmt.Println("Bad collision, retrying")
                 }
                 char_pos := [2]int{char_x, char_y}
@@ -221,57 +216,53 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
             }
         }
     }
-    // current_md5 := md5.Sum(generated_gif)
+    current_md5 := md5.Sum(generated_gif)
 
-    // for garbage := 0; garbage < (1 << 32); garbage++ {
-    //     // fmt.Println("Brute forcing...")
-    //     comment_sub_block := []byte{4, byte(garbage), 0}
-    //     end_comment := []byte{0}
-    //     trailer := []byte{0x3b}
+    fmt.Println("Brute forcing...")
+    for garbage := 0; garbage < (1 << 32); garbage++ {
+        // fmt.Println("Brute forcing...")
+        comment_sub_block := []byte{4, byte(garbage), 0}
+        end_comment := []byte{0}
+        trailer := []byte{0x3b}
 
-    //     end := append(append(comment_sub_block, end_comment...), trailer...)
+        end := append(append(comment_sub_block, end_comment...), trailer...)
 
 
-    //     new_md5 := md5.Sum(append(current_md5[:], end...))
+        new_md5 := md5.Sum(append(current_md5[:], end...))
 
-    //     match := true
-    //     fmt.Printf("%x\n", new_md5)
-    //     fmt.Printf("%x\n", hashquine_params.Mask)
-    //     for i, mask_char := range hashquine_params.Mask {
-    //         // md5_char := fmt.Sprintf("%02x", new_md5[i])
-    //         if string(mask_char) != " " && string(mask_char) != string(new_md5[i]) {
-    //             match = false
-    //             break
-    //         }
-    //     }
+        match := true
+        new_md5_slice := []rune(fmt.Sprintf("%x", new_md5))
+        for i, mask_char := range hashquine_params.Mask {
+            md5_char := new_md5_slice[i]
+            if string(mask_char) != " " && string(mask_char) != string(md5_char) {
+                match = false
+                break
+            }
+        }
 
-    //     if match {
-    //         fmt.Println("Found bruteforce")
-    //         generated_gif = append(generated_gif, end...)
-    //         break
-    //     }
-    // }
+        if match {
+            fmt.Println("Found bruteforce")
+            generated_gif = append(generated_gif, end...)
+            break
+        }
+    }
     fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
-    hash_slice := md5.Sum(generated_gif)
-    rune_slice := []rune(fmt.Sprintf("%x", hash_slice))
-    for i := range hex.EncodeToString(hash_slice[:]) {
+    rune_slice := []rune(fmt.Sprintf("%x", md5.Sum(generated_gif)))
+    for i := range rune_slice {
         if string(hashquine_params.Mask[i]) != " " {
             continue
         }
-        x := i % 4
-        y := (i - x)/8
+        x := i % 8
+        y := int(i/8)
+        fmt.Printf("%v %v\n", x, y)
         char, err := strconv.ParseInt(string(rune_slice[i]), 16, 0)
         if err != nil {
             return empty, err
         }
-        fmt.Printf("%v %v\n", [2]int{x, y}, char)
         coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
         fmt.Printf("putting in char %v in position %v, %v\n", char, x, y)
         generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
         generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)
     }
-    generated_gif = append(generated_gif, 0)
-    generated_gif = append(generated_gif, 0x3b)
-    fmt.Printf("%x", generated_gif)
     return generated_gif, err
 }

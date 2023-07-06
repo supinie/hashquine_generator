@@ -40,7 +40,7 @@ func main() {
         Template_dir: template_dir,
         Output: output,
         Hash_img_coordinates: [2]int{0, 0},
-        Mask: "                                                                ",
+        Mask: "                                ",
         // Mask: "1337    deadbeef                                                ",
         Background_blocks: background_blocks,
         Chars_img_data: chars_img_data,
