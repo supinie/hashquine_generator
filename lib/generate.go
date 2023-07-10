@@ -248,8 +248,8 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
     }
     fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
     rune_slice := []rune(fmt.Sprintf("%x", md5.Sum(generated_gif)))
-    for i := range rune_slice {
-        if string(hashquine_params.Mask[i]) != " " {
+    for i, mask_char := range hashquine_params.Mask {
+        if string(mask_char) != " " {
             continue
         }
         x := i % 8
