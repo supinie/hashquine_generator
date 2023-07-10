@@ -253,7 +253,7 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
             continue
         }
         x := i % 8
-        y := int(i/8)
+        y := i / 8
         fmt.Printf("%v %v\n", x, y)
         char, err := strconv.ParseInt(string(rune_slice[i]), 16, 0)
         if err != nil {
