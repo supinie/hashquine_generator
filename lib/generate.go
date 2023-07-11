@@ -9,7 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
+	// "strconv"
 	"strings"
 )
 
@@ -247,22 +247,24 @@ func Generate(hashquine_params Hashquine_params) ([]byte, error) {
         }
     }
     fmt.Printf("Target hash: %x", md5.Sum(generated_gif))
-    rune_slice := []rune(fmt.Sprintf("%x", md5.Sum(generated_gif)))
-    for i, mask_char := range hashquine_params.Mask {
-        if string(mask_char) != " " {
-            continue
-        }
-        x := i % 8
-        y := i / 8
-        fmt.Printf("%v %v\n", x, y)
-        char, err := strconv.ParseInt(string(rune_slice[i]), 16, 0)
-        if err != nil {
-            return empty, err
-        }
-        coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
-        fmt.Printf("Substituting char %v in position (%v, %v)\n", char, x, y)
-        generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
-        generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos:]...)
-    }
+    // rune_slice := []rune(fmt.Sprintf("%x", md5.Sum(generated_gif)))
+    // for i, mask_char := range hashquine_params.Mask {
+    //     if string(mask_char) != " " {
+    //         continue
+    //     }
+    //     x := i % 8
+    //     y := i / 8
+    //     fmt.Printf("%v %v\n", x, y)
+    //     char, err := strconv.ParseInt(string(rune_slice[i]), 16, 0)
+    //     if err != nil {
+    //         return empty, err
+    //     }
+    //     coll_alternative := alternatives[Alternative_Key{[2]int{x, y}, int(char)}]
+    //     fmt.Printf("Substituting char %v in position (%v, %v)\n", char, x, y)
+    //     generated_gif = append(generated_gif[:coll_alternative.Coll_pos], append(coll_alternative.Coll, generated_gif[coll_alternative.Coll_pos + len(coll_alternative.Coll):]...)...)
+
+    //     // generated_gif = append(generated_gif[:coll_alternative.Coll_pos], coll_alternative.Coll...)
+    //     // generated_gif = append(generated_gif, generated_gif[coll_alternative.Coll_pos:]...)
+    // }
     return generated_gif, err
 }
