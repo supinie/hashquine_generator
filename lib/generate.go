@@ -147,11 +147,17 @@ func Generate(hp *Hashquine_params) ([]byte, error) {
 
                 left_bytes := make([]byte, 2)
                 top_bytes := make([]byte, 2)
+                width_bytes := make([]byte, 2)
+                height_bytes := make([]byte, 2)
                 binary.LittleEndian.PutUint16(left_bytes, uint16(left))
                 binary.LittleEndian.PutUint16(top_bytes, uint16(top))
+                binary.LittleEndian.PutUint16(width_bytes, uint16(hp.Char_width))
+                binary.LittleEndian.PutUint16(height_bytes, uint16(hp.Char_height))
                 char_img = append(char_img, left_bytes...)
                 char_img = append(char_img, top_bytes...)
-                char_img = append(char_img, byte(hp.Char_width), byte(hp.Char_height), 0x00)
+                char_img = append(char_img, width_bytes...)
+                char_img = append(char_img, height_bytes...)
+                char_img = append(char_img, 0x00)
                 
                 char_img = append(char_img, hp.Chars_img_data[char]...)
 
@@ -179,7 +185,7 @@ func Generate(hp *Hashquine_params) ([]byte, error) {
                     if coll_p_img >= 0 && pad_len >= 0 {
                         break
                     }
-                    fmt.Println("Bad collision, retrying")
+                    fmt.Printf("🔁")
                 }
                 char_pos := [2]int{char_x, char_y}
                 alternatives[Alternative_Key{char_pos, char}] =  Alternative_Value{len(generated_gif), coll_img}
