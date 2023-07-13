@@ -22,7 +22,7 @@ func main() {
         fmt.Println(err)
         return
     }
-    chars_img_data := make(map[uint64]([]byte))
+    var chars_img_data [16][]byte
     for _, character := range "0123456789abcdef" {
         char_block, err := lib.Read_gif("./building_blocks/" + string(character) + ".gif")
         if err != nil {
@@ -39,14 +39,15 @@ func main() {
     hashquine_params := lib.Hashquine_params{
         Template_dir: template_dir,
         Output: output,
-        Hash_img_coordinates: [2]int{0, 0},
+        Hash_img_coordinates: [2]int{-40, -40},
         Mask: "                                ",
         // Mask: "1337    deadbeef                                                ",
         Background_blocks: background_blocks,
         Chars_img_data: chars_img_data,
-        Char_dimension: 40,
+        Char_height: 40,
+        Char_width: 40,
     }
-    generated_gif, err := lib.Generate(hashquine_params)
+    generated_gif, err := lib.Generate(&hashquine_params)
     if err != nil {
         fmt.Println(err)
         return

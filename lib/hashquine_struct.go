@@ -6,8 +6,8 @@ type Hashquine_params struct {
     Hash_img_coordinates [2]int
     Mask                 string
     Background_blocks    map[string]([]byte)
-    Chars_img_data       map[uint64]([]byte)
-    Char_dimension       int
+    Chars_img_data       [16][]byte
+    Char_height, Char_width   int
 }
 
 type Alternative_Key struct {

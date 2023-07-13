@@ -1,8 +1,8 @@
 package lib
 
 import (
-	"os"
     "fmt"
+	"os"
     "bytes"
 )
 
@@ -25,16 +25,15 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	}
 	blocks["header"] = header
 
-	lcd := make([]byte, 7)
-	_, err = file.Read(lcd)
+	lsd := make([]byte, 7)
+	_, err = file.Read(lsd)
 	if err != nil {
 		return nil, err
 	}
-	if !bytes.HasSuffix(lcd, []byte{0x80, 0x02, 0x00}) {
-        fmt.Printf("%x\n", lcd)
+	if !bytes.HasSuffix(lsd, []byte{0x80, 0x02, 0x00}) {
 		return nil, fmt.Errorf("Invalid logical screen descriptor for %s", filename)
 	}
-	blocks["lcd"] = lcd
+	blocks["lsd"] = lsd
 
 	gct := make([]byte, 6)
 	_, err = file.Read(gct)
@@ -58,13 +57,14 @@ func Read_gif(filename string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for {
 		subBlockSize := make([]byte, 1)
 		_, err = file.Read(subBlockSize)
 		if err != nil {
 			return nil, err
 		}
-		imgData = append(imgData, subBlockSize[0])
+		imgData = append(imgData, subBlockSize...)
 		if subBlockSize[0] == 0 {
 			break
 		}
@@ -75,7 +75,6 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		}
 		imgData = append(imgData, subBlockData...)
 	}
-	blocks["img_data"] = imgData
 
 	trailer := make([]byte, 1)
 	_, err = file.Read(trailer)
@@ -86,5 +85,8 @@ func Read_gif(filename string) (map[string][]byte, error) {
 		return nil, fmt.Errorf("Invalid GIF trailer for %s", filename)
 	}
 
+	blocks["img_data"] = imgData
+
 	return blocks, nil
 }
+
