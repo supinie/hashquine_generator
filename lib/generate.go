@@ -114,7 +114,7 @@ func Generate(hp *Hashquine_params) ([]byte, error) {
     generated_gif := append(hp.Background_blocks["header"], hp.Background_blocks["lsd"]...)
     generated_gif = append(generated_gif, hp.Background_blocks["gct"]...)
     
-    comment := []byte("If you see this, please don't use md5\n")
+    comment := []byte("If youre reading this, please dont use md5\n")
     generated_gif = append(generated_gif, []byte{0x21, 0xfe}...)
     generated_gif = append(generated_gif, byte(len(comment)))
     generated_gif = append(generated_gif, comment...)
@@ -137,6 +137,7 @@ func Generate(hp *Hashquine_params) ([]byte, error) {
         top += hp.Char_height
         left = -40
         for char_x := 0; char_x < 8; char_x++ {
+            fmt.Printf("\nGenerating collisions for position (%d, %d)\n", char_x,  char_y)
             left += hp.Char_width
             if string([]rune(hp.Mask)[char_x + (8 * char_y)]) != " " {
                 continue
@@ -163,7 +164,7 @@ func Generate(hp *Hashquine_params) ([]byte, error) {
                 var coll_img, coll_nop []byte
                 var coll_p_img, pad_len int
                 for {
-                    fmt.Printf("Generating collision for position (%d, %d), character %d\n", char_x,  char_y, char)
+                    fmt.Printf("▢")
                     coll_img, coll_nop, err = gen_collision(generated_gif, tmp_dir)
                     if err != nil {
                         return nil, err
