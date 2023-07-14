@@ -147,11 +147,13 @@ func brute_force_mask(md5sum []byte, hp *Hashquine_params) []byte {
         end := []byte{0x04, byte(garbage), 0x00, 0x3b}
 
         new_md5 := md5.Sum(append(md5sum[:], end...))
+        fmt.Printf("%x\n", new_md5)
 
         match := true
         new_md5_iterable := []rune(fmt.Sprintf("%x", new_md5))
         for i, mask_char := range hp.Mask {
             md5_char := new_md5_iterable[i]
+            fmt.Println(md5_char, mask_char)
             if string(mask_char) != " " && string(mask_char) != string(md5_char) {
                 match = false
                 break
